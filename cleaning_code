@@ -1,0 +1,60 @@
+library(tidyverse)
+
+#Here I show a cleaning process I performed recently for a public project in which I've been working. This is focused in the Addresses column of one of their datasets.
+#This column is useful for many things, automatizing processes of classification, and most importantly for developing geographical visualizations.
+
+
+bd_19$DIRECCION_RES <- toupper(bd_19$DIRECCION_RES) #First step in any cleaning process by regular expressions should be to bring every character into upper case letters.
+
+#Then one should perform a proper inspection to detect anomalies.
+#There are three types of nomenclatures that we want to use. CRA, CALLE and TRANSVERSAL. So we star by replacing all variations of this with their proper structure.
+
+bd_19$DIRECCION_RES <- gsub("CARRERA"," CRA",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("KRA","CRA",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("CR^A","CRA",bd_19$DIRECCION_RES)
+
+#A proper inspection of data is really important, as many of this differences in records can only be catched by eye. The first two lines of code are an example of that.
+#The last line is more general, and will catch everything that begins by CR and does not continue with an A and convert it to CRA, our desired outcome (this could include
+#patterns like CR or CRR)
+
+bd_19$DIRECCION_RES <- gsub("CLL","CALLE",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("CL","CALLE",bd_19$DIRECCION_RES)
+
+#The logic here is almost the same than in the previous step, but here we see the reason why the order in which we perform this codes is so important.
+#If we run the second code, first, we will end up with some observations with the value "CALLEL".
+
+bd_19$DIRECCION_RES <- gsub("TRANS[^VERSAL]","TRANSVERSAL",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("TRANSV[^ERSAL]","TRANSVERSAL",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("TRANSVE[^RSAL]","TRANSVERSAL",bd_19$DIRECCION_RES)
+
+#The brackets in conjunction with the caret, help in detecting anything that do not follow a specific order of characters after the stated beginning.
+#Again, the order is important here.
+
+bd_19$DIRECCION_RES <- gsub("+.+CRA","CRA",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("+.+CALLE","CALLE",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("+.+TRANSVERSAL","TRANSVERSAL",bd_19$DIRECCION_RES)
+
+#This is, perhaps, the more tricky part of the cleaning process. With this, we are catching ANYTHING that comes before the CRA pattern
+#The CALLE pattern, and the TRANSVERSAL pattern, and we are leaving only the pattern that interests us. For this we have to apply a bit of logical
+#reasoning, the reason is that we know that everything should begin with that pattern, anything that is behind that pattern is dismissible. 
+
+bd_19$DIRECCION_RES <- gsub(")$","",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("\\(","",bd_19$DIRECCION_RES)
+bd_19[bd_19$DIRECCION_RES =="",5] <- NA #We are assigning blank spaces here a proper NA value, to handle them later.
+bd_19$DIRECCION_RES <- gsub("PISO.+","",bd_19$DIRECCION_RES)
+
+#Nothing too peculiar here, I am erasing some common patterns of undesirable variation I detected through inspection. Important thins to remark 
+"here are to remember that '$' means to find the pattern indicated at the end of the string.
+
+bd_19$DIRECCION_RES <- gsub("[^0-9]+$","",bd_19$DIRECCION_RES)
+
+#This one is also interesting, here we are erasing any pattern at the end of the string that is not a chain of numbers. The reason is simple.
+#The pattern of addresses in this country implies that every address is always going to end up in some number. So we can be confident in erasing
+anything different at the end.
+
+bd_19$DIRECCION_RES <- gsub("CASA+.+","",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("APTO+.+","",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("APT+.+","",bd_19$DIRECCION_RES)
+bd_19$DIRECCION_RES <- gsub("AP+.+","",bd_19$DIRECCION_RES)
+
+#Nothing peculiar here also, I am erasing some other common patterns that I saw after a final inspection of the data. The results is a column of addresses properly registered.
