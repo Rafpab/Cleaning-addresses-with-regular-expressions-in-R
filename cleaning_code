@@ -44,13 +44,13 @@ bd_19[bd_19$DIRECCION_RES =="",5] <- NA #We are assigning blank spaces here a pr
 bd_19$DIRECCION_RES <- gsub("PISO.+","",bd_19$DIRECCION_RES)
 
 #Nothing too peculiar here, I am erasing some common patterns of undesirable variation I detected through inspection. Important thins to remark 
-"here are to remember that '$' means to find the pattern indicated at the end of the string.
+#"here are to remember that '$' means to find the pattern indicated at the end of the string.
 
 bd_19$DIRECCION_RES <- gsub("[^0-9]+$","",bd_19$DIRECCION_RES)
 
 #This one is also interesting, here we are erasing any pattern at the end of the string that is not a chain of numbers. The reason is simple.
 #The pattern of addresses in this country implies that every address is always going to end up in some number. So we can be confident in erasing
-anything different at the end.
+#anything different at the end.
 
 bd_19$DIRECCION_RES <- gsub("CASA+.+","",bd_19$DIRECCION_RES)
 bd_19$DIRECCION_RES <- gsub("APTO+.+","",bd_19$DIRECCION_RES)
@@ -58,3 +58,14 @@ bd_19$DIRECCION_RES <- gsub("APT+.+","",bd_19$DIRECCION_RES)
 bd_19$DIRECCION_RES <- gsub("AP+.+","",bd_19$DIRECCION_RES)
 
 #Nothing peculiar here also, I am erasing some other common patterns that I saw after a final inspection of the data. The results is a column of addresses properly registered.
+
+
+muestra <- gsub("\\s\\-\\s","\\-",muestra,perl = TRUE)
+muestra <- gsub("( [A-Za-z0-9]+$){1,5}","",muestra,perl = TRUE)
+muestra <- gsub("( [A-Za-z0-9]+$){1,5}","",muestra,perl = TRUE)
+
+#With this, I am making sure that at the end of string the code ends with the form "-[0-9]+" , that means hyphen and one or more numbers. Every adress should follow this structure
+#so whatever comes after that will be wrong.
+
+
+
